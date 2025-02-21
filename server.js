@@ -3,21 +3,28 @@ const cors = require("cors");
 
 const app = express();
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: "*" })); // Allow frontend to connect
 
+// Root Route (Fix for "Cannot GET /")
+app.get("/", (req, res) => {
+    res.send("Backend is running successfully!");
+});
+
+// GET /bfhl
 app.get("/bfhl", (req, res) => {
     res.status(200).json({ operation_code: 1 });
 });
 
+// POST /bfhl
 app.post("/bfhl", (req, res) => {
     const { data } = req.body;
     if (!data || !Array.isArray(data)) {
         return res.status(400).json({ is_success: false, message: "Invalid input" });
     }
 
-    const numbers = data.filter(item => !isNaN(item));
-    const alphabets = data.filter(item => isNaN(item));
-    const highest_alphabet = alphabets.length > 0 ? [alphabets.sort((a, b) => b.localeCompare(a))[0]] : [];
+    const numbers = data.filter(item => !isNaN(item)); // Extract numbers
+    const alphabets = data.filter(item => isNaN(item)); // Extract alphabets
+    const highest_alphabet = alphabets.length > 0 ? [alphabets.sort((a, b) => b.localeCompare(a))[alphabets.length - 1]] : [];
 
     res.json({
         is_success: true,
@@ -30,5 +37,6 @@ app.post("/bfhl", (req, res) => {
     });
 });
 
+// Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
